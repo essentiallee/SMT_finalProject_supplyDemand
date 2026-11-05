@@ -1,93 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#f5f4ef">
-  <title>Democratizing Policy Simulations</title>
-  <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
 </head>
 <body>
-  <header class="topbar">
-    <a class="wordmark" href="./">SIMULATION TOOL <span class="status-dot" aria-hidden="true"></span></a>
-    <span class="project-name">DEMOCRATIZING POLICY SIMULATIONS</span>
-    <button class="text-button" id="credits-open">DATA SOURCE &amp; CREDITS ↗</button>
-  </header>
 
-  <main>
-    <details class="manual" open>
-      <summary>Manual &amp; Explained Method of the Simulation <span class="chevron" aria-hidden="true">⌄</span></summary>
-      <div class="manual-copy">
-        <p>What happens when we change the rules?<br>Explore the relationship between policy, developers, and tenants in a shared real estate sandbox.</p>
-        <p>Set a base condition, adjust a policy, and press play—or drag the timeline—to compare outcomes. The center is reserved for the spatial model.</p>
-        <p class="annotation">INTERFACE PROTOTYPE / 01<br>Values are illustrative. The simulation engine and Rhino/Grasshopper model will be connected in a later phase.</p>
-      </div>
-    </details>
-
-    <div class="workspace">
-      <aside class="controls" aria-label="Simulation settings">
-        <section class="control-section">
-          <h2><span>01</span> BASE CONDITION</h2>
-          <div class="base-fields">
-            <label>Housing units <input id="housing" type="number" min="100" max="100000" step="100" value="1000"></label>
-            <label>Tenant households <input id="households" type="number" min="100" max="100000" step="100" value="1200"></label>
-          </div>
-        </section>
-        <section class="control-section metrics-section">
-          <h2><span>02</span> POLICY METRICS</h2>
-          <div class="gradient-bar" aria-hidden="true"></div>
-          <div class="gradient-labels"><span>BASELINE</span><span>INTERVENTION</span></div>
-          <p class="small-copy">Change the conditions.<br>Observe what follows.</p>
-        </section>
-        <section class="control-section">
-          <div class="section-heading"><h2><span>03</span> POLICIES</h2><button class="text-button reset" id="reset">RESET ↺</button></div>
-          <div class="policy-grid" id="policy-grid"></div>
-          <p class="annotation policy-note">Modular controls / add policies in script.js</p>
-        </section>
-      </aside>
-
-      <section class="simulation-space" aria-label="Space reserved for the future Rhino and Grasshopper simulation model">
-        <div class="space-label"><span class="status-dot" aria-hidden="true"></span> SPATIAL SANDBOX</div>
-        <div id="model-mount"></div>
-        <div class="space-footer"><span>DEVELOPERS ↔ TENANTS</span><span>MODEL CONNECTION PENDING</span></div>
-      </section>
-
-      <aside class="results" aria-label="Simulation playback and results">
-        <section class="playback">
-          <div class="section-heading"><h2>SIMULATE</h2><span class="annotation">DEMO</span></div>
-          <div class="play-row"><button id="play" class="play-button" aria-label="Play simulation">▶</button><span id="time-label">YEAR 00 / 20</span></div>
-          <label class="sr-only" for="timeline">Simulation year</label>
-          <input id="timeline" type="range" min="0" max="20" step="0.1" value="0">
-          <div class="gradient-labels"><span>00</span><span>20 YEARS</span></div>
-        </section>
-        <section class="result-card">
-          <h2>RESULT A <span>HOUSING ACCESS</span></h2>
-          <div class="result-value"><span>baseline</span><strong id="access-baseline">—</strong></div>
-          <div class="result-value simulated"><span>simulated</span><strong id="access-result">—</strong></div>
-          <div class="result-track"><div id="access-bar"></div></div>
-          <p class="annotation">Households accommodated · illustrative</p>
-        </section>
-        <section class="result-card">
-          <h2>RESULT B <span>DEVELOPMENT VALUE</span></h2>
-          <div class="result-value"><span>baseline</span><strong id="value-baseline">—</strong></div>
-          <div class="result-value simulated"><span>simulated</span><strong id="value-result">—</strong></div>
-          <div class="result-track"><div id="value-bar"></div></div>
-          <p class="annotation">Index expressed in $m · illustrative</p>
-        </section>
-        <p class="annotation result-note">A space for testing possibilities.<br>Not a forecast of real-world outcomes.</p>
-      </aside>
-    </div>
-  </main>
-  <footer class="footer"><span>SMT / SUPPLY &amp; DEMAND</span><span>POLICY AS A DESIGN TOOL</span><span>PROTOTYPE 2026</span></footer>
-
-  <dialog id="credits">
-    <div class="section-heading"><h2>DATA SOURCE &amp; CREDITS</h2><button id="credits-close" class="text-button" aria-label="Close credits">CLOSE ×</button></div>
-    <p>Democratizing Policy Simulations</p>
-    <p>A collaborative SMT assignment exploring real estate development through the relationship between developers, tenants, and public policy.</p>
-    <p>This interface uses synthetic demo calculations only. No observed dataset has been connected. Policy effects are placeholders for interaction testing and do not represent research findings.</p>
-    <a href="https://github.com/essentiallee/SMT_finalProject_supplyDemand/tree/Branch_Jae" target="_blank" rel="noopener noreferrer">Project source / Branch_Jae ↗</a>
-  </dialog>
 </body>
 </html>

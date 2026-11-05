@@ -36,6 +36,12 @@ policyMetrics.forEach(policy => {
   $('policy-grid').append(card);
   input.addEventListener('input', render);
 });
+for (let index = policyMetrics.length; index < 14; index++) {
+  const placeholder = document.createElement('div');
+  placeholder.className = 'policy-card';
+  placeholder.setAttribute('aria-hidden', 'true');
+  $('policy-grid').append(placeholder);
+}
 
 // Replace this function with the team's model adapter. No empirical claims are made.
 function demoModel(year, policies, housing, households) {
@@ -110,7 +116,5 @@ $('reset').addEventListener('click', () => {
   policyMetrics.forEach(policy => { $(policy.id).value = policy.value; });
   render();
 });
-$('credits-open').addEventListener('click', () => $('credits').showModal());
-$('credits-close').addEventListener('click', () => $('credits').close());
 document.addEventListener('visibilitychange', () => { if (document.hidden) setPlaying(false); });
 render();

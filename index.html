@@ -1,11 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>Democratizing Policy Simulations</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
 </head>
 <body>
-
+  <main class="simulation-layout">
+    <details class="tool-panel" open>
+      <summary class="pill-header">SIMULATION TOOL <span class="chevron" aria-hidden="true"></span></summary>
+      <div class="tool-content">
+        <section class="manual">
+          <h1>Manual &amp; Explained Method of the Simulation</h1>
+          <p>Working from the logic of supply and demand in real estate development, this simulation explores how policy design could challenge common assumptions. The two main actors are developers and tenants; the simulation acts as the government or policymaker. Adjust the policy blocks below to explore how different rules affect the base condition and the resulting environment. Press play to move through the simulation, or drag the timeline manually. This first version demonstrates the interface with illustrative values. The spatial model and research data will be connected in the next phase.</p>
+        </section>
+        <fieldset class="condition-box"><legend>BASE CONDITION</legend>
+          <div class="base-fields"><label>Housing units <input id="housing" type="number" min="100" max="100000" step="100" value="1000"></label><label>Tenant households <input id="households" type="number" min="100" max="100000" step="100" value="1200"></label></div>
+        </fieldset>
+        <div class="flow-arrow" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <fieldset class="metrics-box"><legend>POLICY METRICS</legend></fieldset>
+        <section class="policies"><div class="section-heading"><h2>POLICIES</h2><button id="reset" class="reset" aria-label="Reset simulation">↺</button></div><div id="policy-grid" class="policy-grid"></div></section>
+      </div>
+    </details>
+    <section class="simulation-space" aria-label="Reserved for the Rhino and Grasshopper model"><div id="model-mount"></div></section>
+    <aside class="right-column">
+      <details class="credits-panel"><summary class="pill-header">DATA SOURCE &amp; CREDITS <span class="chevron" aria-hidden="true"></span></summary>
+        <div class="credits-content"><p>Democratizing Policy Simulations</p><p>A collaborative SMT project exploring developers, tenants, and policy in real estate development.</p><p>Interface prototype: all displayed results use synthetic demonstration calculations. No observed dataset or Rhino/Grasshopper model is connected yet.</p><a href="https://github.com/essentiallee/SMT_finalProject_supplyDemand/tree/Branch_Jae" target="_blank" rel="noopener noreferrer">Project source / Branch_Jae ↗</a></div>
+      </details>
+      <section class="simulation-panel" aria-label="Simulation playback and results">
+        <h2>SIMULATE</h2>
+        <div class="play-row"><button id="play" class="play-button" aria-label="Play simulation"><span aria-hidden="true">▷</span></button><label class="sr-only" for="timeline">Simulation year</label><input id="timeline" type="range" min="0" max="20" step="0.1" value="0"></div>
+        <span id="time-label" class="sr-only">YEAR 00 / 20</span>
+        <div class="result-list">
+          <section class="result-card"><div class="result-title"><h2>RESULT A</h2><span>variable a</span></div><div class="result-numbers"><div class="result-value observed"><span>baseline:</span><strong id="access-baseline">—</strong></div><div class="result-value"><span>simulated</span><strong id="access-result">—</strong></div></div></section>
+          <section class="result-card"><div class="result-title"><h2>RESULT B</h2><span>variable b</span></div><div class="result-numbers"><div class="result-value observed"><span>baseline:</span><strong id="value-baseline">—</strong></div><div class="result-value"><span>simulated</span><strong id="value-result">—</strong></div></div></section>
+          <p class="demo-note">Illustrative results · model connection pending</p>
+        </div>
+        <div hidden><div id="access-bar"></div><div id="value-bar"></div></div>
+      </section>
+    </aside>
+  </main>
 </body>
 </html>

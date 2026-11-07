@@ -11,19 +11,19 @@
 </head>
 <body>
   <main class="simulation-layout">
-    <details class="tool-panel" open>
+    <details class="tool-panel">
       <summary class="pill-header">SIMULATION TOOL <span class="chevron" aria-hidden="true"></span></summary>
       <div class="tool-content">
         <section class="manual">
           <h1>Manual &amp; Explained Method of the Simulation</h1>
-          <p>Working from the logic of supply and demand in real estate development, this simulation explores how policy design could challenge common assumptions. The two main actors are developers and tenants; the simulation acts as the government or policymaker. Adjust the policy blocks below to explore how different rules affect the base condition and the resulting environment. Press play to move through the simulation, or drag the timeline manually. This first version demonstrates the interface with illustrative values. The spatial model and research data will be connected in the next phase.</p>
+          <p>Working from the logic of supply and demand in real estate development, this simulation explores how policy design could challenge common assumptions. The two main actors are developers and tenants; the simulation acts as the government or policymaker. Move policy tiles into Policy Metrics to build a scenario. Drag a tile by its arrow, or click the arrow to add or remove it. The base condition stays fixed. Press play to advance slowly; dragging the play button or timeline pauses playback. This first version demonstrates the interface with illustrative values. The spatial model and research data will be connected in the next phase.</p>
         </section>
         <fieldset class="condition-box"><legend>BASE CONDITION</legend>
-          <div class="base-fields"><label>Housing units <input id="housing" type="number" min="100" max="100000" step="100" value="1000"></label><label>Tenant households <input id="households" type="number" min="100" max="100000" step="100" value="1200"></label></div>
+          <div class="base-fields"><label>Housing units <input id="housing" type="number" min="100" max="100000" step="100" value="1000" readonly aria-label="Fixed housing units"></label><label>Tenant households <input id="households" type="number" min="100" max="100000" step="100" value="1200" readonly aria-label="Fixed tenant households"></label></div>
         </fieldset>
         <div class="flow-arrow" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        <fieldset class="metrics-box"><legend>POLICY METRICS</legend></fieldset>
-        <section class="policies"><div class="section-heading"><h2>POLICIES</h2><button id="reset" class="reset" aria-label="Reset simulation">↺</button></div><div id="policy-grid" class="policy-grid"></div></section>
+        <fieldset class="metrics-box" data-policy-zone="active"><legend>POLICY METRICS</legend><p class="drop-hint" id="drop-hint">Move policy tiles here to build a scenario.</p><div id="active-policies" class="active-policies"></div></fieldset>
+        <section class="policies"><div class="section-heading"><h2>POLICIES</h2><button id="reset" class="reset" aria-label="Reset simulation">↺</button></div><div id="policy-grid" class="policy-grid" data-policy-zone="bank"></div><p class="policy-help">Drag ↗ to move · click ↗ to add / remove</p><p id="policy-status" class="sr-only" role="status" aria-live="polite"></p></section>
       </div>
     </details>
     <section class="simulation-space" aria-label="Reserved for the Rhino and Grasshopper model"><div id="model-mount"></div></section>
@@ -33,8 +33,8 @@
       </details>
       <section class="simulation-panel" aria-label="Simulation playback and results">
         <h2>SIMULATE</h2>
-        <div class="play-row"><button id="play" class="play-button" aria-label="Play simulation"><span aria-hidden="true">▷</span></button><label class="sr-only" for="timeline">Simulation year</label><input id="timeline" type="range" min="0" max="20" step="0.1" value="0"></div>
-        <span id="time-label" class="sr-only">YEAR 00 / 20</span>
+        <div class="play-row" id="play-track"><label class="sr-only" for="timeline">Simulation year</label><input id="timeline" type="range" min="0" max="20" step="0.1" value="0"><button id="play" class="play-button" aria-label="Play simulation" aria-pressed="false"><span class="play-icon" aria-hidden="true"></span></button></div>
+        <span id="time-label" class="time-label">YEAR 00 / 20</span>
         <div class="result-list">
           <section class="result-card"><div class="result-title"><h2>RESULT A</h2><span>variable a</span></div><div class="result-numbers"><div class="result-value observed"><span>baseline:</span><strong id="access-baseline">—</strong></div><div class="result-value"><span>simulated</span><strong id="access-result">—</strong></div></div></section>
           <section class="result-card"><div class="result-title"><h2>RESULT B</h2><span>variable b</span></div><div class="result-numbers"><div class="result-value observed"><span>baseline:</span><strong id="value-baseline">—</strong></div><div class="result-value"><span>simulated</span><strong id="value-result">—</strong></div></div></section>

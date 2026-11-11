@@ -69,3 +69,11 @@ Physical geometry is unchanged. A future renderer can consume `simulation:update
 ## Validation
 
 Run `node model-check.cjs` for initial occupancy, no-policy equivalence, finite/bounded results, conservation of capacity, nonincreasing original retention, policy effects, construction delay, and deterministic scrubbing checks. Behavioral assumptions require empirical validation beyond these computational checks.
+
+## Geometry integration preserved from main
+
+`geometry-model.js`, `geometry-view.js`, and `geometry.css` retain the fictional 25-block / 500-lot model. Height limit, lot coverage, lot merging and maximum FAR update geometry immediately. The four household policy tiles operate on the separate monthly housing model. Spatial controls do not affect its rent, capacity or household outputs; the year cursor does not phase geometry. Neither model represents observed buildings or validated zoning.
+
+The page loads the housing engine, spatial engine, spatial view, then interface controller. Spatial view listens to `simulation:update` and uses its policies without depending on the removed A/B outputs. Manual, credits and household results notes are owned by HTML so the geometry adapter cannot replace them with outdated demo descriptions.
+
+Merge resolution preserves main's geometry controls and unit-aware accessibility labels alongside Jae's cohort engine and seven results cards. Text files use LF line endings to avoid whole-file conflicts from CRLF conversion.

@@ -195,6 +195,7 @@ function render() {
   $('play-track').style.setProperty('--progress', state.year / 20);
   $('time-label').textContent = `YEAR ${state.year.toFixed(1).padStart(4, '0')} / 20`;
   const formats = {
+    apartmentPrice: n => `$${Math.round(n).toLocaleString()}`,
     rent: n => `$${Math.round(n).toLocaleString()}`,
     retention: n => `${n.toFixed(1)}%`, occupancy: n => `${n.toFixed(1)}%`,
     newcomerShare: n => `${n.toFixed(1)}%`, burdened: n => `${n.toFixed(1)}%`,
@@ -204,6 +205,8 @@ function render() {
     $(`${key}-baseline`).textContent=format(result.baseline[key]);
     $(`${key}-result`).textContent=format(result.scenario[key]);
   });
+  const priceChange=(result.scenario.apartmentPrice/result.baseline.apartmentPrice-1)*100;
+  $('price-context').textContent=`Interest: ${result.baseline.interestRate.toFixed(1)}% no policy / ${result.scenario.interestRate.toFixed(1)}% scenario · ${priceChange>=0?'+':''}${priceChange.toFixed(1)}% value vs no policy. ${state.active.has('interest')?'Interest policy active.':'Interest policy inactive: using 5%.'}`;
   // Adapter event for a future Rhino/Grasshopper renderer, without filling the canvas.
   document.dispatchEvent(new CustomEvent('simulation:update', { detail: {
     year: state.year, playing: state.playing, baseCondition,

@@ -4,9 +4,41 @@
   mount.innerHTML = `<div class="model-heading"><h1>A NEIGHBORHOOD OF POSSIBILITIES</h1><p>25 fictional blocks / 500 original lots<br>Spatial capacity, not a development forecast.</p></div>
     <div class="model-toolbar"><button id="tenant-mode" aria-pressed="false">AMI cloud</button><button id="tenant-original" aria-pressed="true">Original</button><button id="tenant-new" aria-pressed="true">New</button><button id="geometry-baseline" aria-pressed="false">View baseline</button><button id="rotate-left" aria-label="Rotate left">↶</button><button id="rotate-right" aria-label="Rotate right">↷</button><button id="zoom-in" aria-label="Zoom in">＋</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="reset-view">Reset view</button></div>
     <div class="tenant-legend"><span class="original-key">● Original tenants</span><span class="new-key">● New tenants</span><span>1 point = 1 household · partial points fade</span></div><div class="tenant-summary" role="status"></div><canvas id="neighborhood-canvas" tabindex="0" aria-label="Fictional neighborhood. Drag or use left and right arrow keys to rotate. Scroll or use plus and minus to zoom."></canvas>
-    <div class="model-inspector" hidden></div><div class="model-stats" aria-label="Spatial results"></div>
+    <div class="model-inspector" hidden></div><details class="scene-stats"><summary>Spatial statistics</summary><div class="model-stats" aria-label="Spatial results"></div></details>
     <p class="model-caption">Drag to rotate · Scroll to zoom · Click a building<br><span id="geometry-status">Scenario / baseline spatial rules</span><br>Points follow the household model and year. Spatial controls change illustrative placement; they do not change household outcomes. In AMI view, height = income / inflation-adjusted reference AMI.</p>
     <details class="model-notes"><summary>Spatial model / assumptions</summary><div class="notes-body"><p>All geometry is synthetic: 5 × 5 blocks, each 100 × 80 m, with twenty 10 × 40 m lots. Streets are 20 m wide; each floor is 3 m tall. This is not a real NYC neighborhood or a zoning-compliance model.</p><p>Baseline: 12-floor height limit, 70% lot coverage, unmerged lots, maximum FAR 8. Coverage sets the footprint. Floors = floor(min(height limit, FAR / coverage fraction) × build-out factor), with a minimum of one floor.</p><p>Each original lot has a fixed illustrative factor of 0.45–0.95. Merged lots average their factors. Merging joins adjacent lots within a block row; any remainder stays as a smaller parcel. Land area is conserved.</p><p>Spatial policies combine simultaneously, not in chain order. Removing a policy restores its baseline parameter. Realized FAR is gross floor area divided by parcel land area, excluding streets. Uncovered land is not necessarily public space.</p><p>Interest, affordable units, density bonus and subsidy affect the separate 20-year household model. Height, coverage, lot merging and FAR affect this geometry only. Geometry does not feed housing-unit counts or rent. The household model includes illustrative construction timing and affordability exits; neither model is a validated forecast.</p></div></details>`;
+  const panelControls=document.createElement('nav');
+  panelControls.className='scene-panel-controls';
+  panelControls.setAttribute('aria-label','Scene panels');
+  panelControls.innerHTML='<button id="toggle-policies" aria-pressed="true">Policies</button><button id="scene-focus" aria-pressed="false">Focus view</button><button id="toggle-results" aria-pressed="true">Results</button>';
+  document.body.append(panelControls);
+  const left=document.querySelector('.tool-panel'),right=document.querySelector('.right-column');
+  left.id='policy-panel';right.id='results-panel';
+  document.getElementById('toggle-policies').setAttribute('aria-controls',left.id);
+  document.getElementById('toggle-results').setAttribute('aria-controls',right.id);
+  let focusRestore=null;
+  function syncPanels(){
+    const lh=document.body.classList.contains('scene-hide-left'),rh=document.body.classList.contains('scene-hide-right');
+    left.inert=lh;right.inert=rh;
+    left.setAttribute('aria-hidden',String(lh));right.setAttribute('aria-hidden',String(rh));
+    document.getElementById('toggle-policies').setAttribute('aria-pressed',String(!lh));
+    document.getElementById('toggle-results').setAttribute('aria-pressed',String(!rh));
+    document.getElementById('scene-focus').setAttribute('aria-pressed',String(lh&&rh));
+    document.getElementById('scene-focus').textContent=lh&&rh?'Show panels':'Focus view';
+  }
+  document.getElementById('toggle-policies').onclick=()=>{document.body.classList.toggle('scene-hide-left');syncPanels();};
+  document.getElementById('toggle-results').onclick=()=>{document.body.classList.toggle('scene-hide-right');syncPanels();};
+  document.getElementById('scene-focus').onclick=()=>{
+    if(document.body.classList.contains('scene-hide-left')&&document.body.classList.contains('scene-hide-right')){
+      document.body.classList.toggle('scene-hide-left',focusRestore?.left??false);
+      document.body.classList.toggle('scene-hide-right',focusRestore?.right??false);
+    }else{
+      focusRestore={left:document.body.classList.contains('scene-hide-left'),right:document.body.classList.contains('scene-hide-right')};
+      document.body.classList.add('scene-hide-left','scene-hide-right');
+    }syncPanels();
+  };
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.body.classList.remove('scene-hide-left','scene-hide-right');syncPanels();}});
+  syncPanels();
   const canvas = document.getElementById('neighborhood-canvas'), ctx = canvas.getContext('2d');
   const inspector = mount.querySelector('.model-inspector');
   let snapshots=null, cloud=false, showOriginal=true, showNew=true, pointHits=[];
@@ -16,9 +48,9 @@
     const box = canvas.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
     canvas.width = Math.round(box.width * dpr); canvas.height = Math.round(box.height * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const W = box.width, H = box.height, scale = Math.max(.02, Math.min(W / 850, H / 440)) * zoom;
+    const W = box.width, H = box.height, scale = Math.max(.02, Math.min(W / 760, H / (cloud ? 690 : 460))) * zoom;
     const co = Math.cos(angle), si = Math.sin(angle);
-    const project = (x, y, z = 0) => { x -= 290; y -= 240; return [W / 2 + (x * co - y * si) * scale, H * .57 + (x * si + y * co) * .48 * scale - z * scale]; };
+    const project = (x, y, z = 0) => { x -= 290; y -= 240; return [W / 2 + (x * co - y * si) * scale, (cloud ? H * .65 : H * .54) + (x * si + y * co) * .48 * scale - z * scale]; };
     hits = []; pointHits=[];
     function poly(vertices, color, b) {
       const points = vertices.map(v => project(...v));

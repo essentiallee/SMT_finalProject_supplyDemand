@@ -33,18 +33,20 @@
     return { parcels: buildings.length, land, area, far: area / land, open: 100 * (1 - footprint / land) };
   }
   // Aggregate affordability share applied uniformly; no per-building allocation exists.
-  function indicators(building, policies = {}) {
+  function indicators(building, policies = {}, snapshot = null, reference = null) {
     const rules={...baseline,...policies};
     const realizedFAR=building.footprint*building.floors/building.land;
-    const affordableFAR=realizedFAR*Math.max(0,Math.min(1,(policies.affordable || 0)/100));
+    const occupancy=snapshot ? snapshot.occupancy/100 : 1;
+    const affordableFAR=realizedFAR*Math.max(0,Math.min(1,(policies.affordable || 0)/100))*occupancy;
     const capacityFAR=Math.min(rules.height*rules.coverage/100,rules.far)*(1+(policies.density || 0)/100);
-    const opportunity=capacityFAR>0?Math.max(0,Math.min(1,(capacityFAR-realizedFAR)/capacityFAR)):0;
+    const valueRatio=snapshot?.apartmentPrice && reference?.apartmentPrice ? snapshot.apartmentPrice/reference.apartmentPrice : 1;
+    const opportunity=capacityFAR>0?Math.max(0,Math.min(1,(capacityFAR-realizedFAR)/capacityFAR*valueRatio)):0;
     return {realizedFAR,affordableFAR,capacityFAR,opportunity};
   }
   function color(score,shade=1) {
     const t=Math.max(0,Math.min(1,score));
-    const pale=[247,249,252],navy=[24,46,83];
-    return `rgb(${pale.map((v,i)=>Math.round(Math.max(0,Math.min(255,(v+(navy[i]-v)*t)*shade)))).join(',')})`;
+    const pale=[255,255,255],navy=[24,46,83];
+    return `rgb(${pale.map((v,i)=>Math.round(Math.max(0,Math.min(255,(v+(navy[i]-v)*t)*(1-(1-shade)*(.15+.85*t)))))).join(',')})`;
   }
   const api = { baseline, build, measure, indicators, color };
   if (typeof module !== 'undefined') module.exports = api;

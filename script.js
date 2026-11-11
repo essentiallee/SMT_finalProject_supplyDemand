@@ -215,6 +215,12 @@ function render() {
 }
 function setPlaying(value) {
   state.playing = value;
+  const scenePlay=$('scene-play');
+  if(scenePlay){
+    scenePlay.textContent=value?'Ⅱ Pause':(state.year>=20?'↺ Replay':'▶ Play');
+    scenePlay.setAttribute('aria-label',value?'Pause simulation':(state.year>=20?'Replay simulation':'Play simulation'));
+    scenePlay.setAttribute('aria-pressed',String(value));
+  }
   $('play').classList.toggle('is-playing', value);
   $('play').setAttribute('aria-label', value ? 'Pause simulation' : 'Play simulation');
   $('play').setAttribute('aria-pressed', String(value));
@@ -271,6 +277,7 @@ function cancelPlayDrag() { playDrag = null; setPlaying(false); }
 $('play').addEventListener('pointercancel', cancelPlayDrag);
 $('play').addEventListener('lostpointercapture', () => { if (playDrag) cancelPlayDrag(); });
 $('play').addEventListener('click', event => { if (event.detail === 0) togglePlayback(); });
+$('scene-play')?.addEventListener('click', togglePlayback);
 timeline.addEventListener('pointerdown', () => setPlaying(false));
 timeline.addEventListener('keydown', event => {
   if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','PageUp','PageDown'].includes(event.key)) setPlaying(false);

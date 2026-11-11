@@ -105,3 +105,13 @@ body{overflow:hidden}
 #model-mount>.tenant-legend{bottom:205px}
 @media(max-width:1000px){#model-mount>.tenant-legend{bottom:260px}}
 @media(max-width:600px){.scene-live-metrics{gap:4px;margin-left:2px;margin-right:2px}.scene-live-metrics span{font-size:7px}.scene-live-metrics strong{font-size:15px}}
+
+/* Fixed legend ranges keep color comparable across policies and baseline. */
+.building-color-control{position:absolute;top:120px;left:50%;transform:translateX(-50%);width:250px;padding:10px 14px;z-index:3;background:rgba(244,247,250,.88);backdrop-filter:blur(18px);border:1px solid var(--edge);border-radius:16px;box-shadow:var(--raised);color:#596672}
+.building-color-control label{display:block;font-size:8px;letter-spacing:.1em;margin-bottom:5px}
+.building-color-control select{width:100%;font:inherit;font-size:11px;background:transparent;color:#536170;border:0;cursor:pointer}
+.building-color-ramp{height:6px;border-radius:6px;background:linear-gradient(90deg,#f7f9fc,#182e53);margin-top:10px;border:1px solid #c8d0da}
+.building-color-labels{display:flex;justify-content:space-between;font-size:9px;margin-top:4px}
+.building-color-control p{font-size:9px;line-height:1.4;margin:6px 0 0}
+#model-mount>.model-inspector{top:280px}
+@media(max-width:600px){.building-color-control{top:95px;width:230px;padding:8px 12px}.building-color-control p{font-size:8px}}

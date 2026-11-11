@@ -32,7 +32,21 @@
     const area = buildings.reduce((sum, b) => sum + b.footprint * b.floors, 0);
     return { parcels: buildings.length, land, area, far: area / land, open: 100 * (1 - footprint / land) };
   }
-  const api = { baseline, build, measure };
+  // Aggregate affordability share applied uniformly; no per-building allocation exists.
+  function indicators(building, policies = {}) {
+    const rules={...baseline,...policies};
+    const realizedFAR=building.footprint*building.floors/building.land;
+    const affordableFAR=realizedFAR*Math.max(0,Math.min(1,(policies.affordable || 0)/100));
+    const capacityFAR=Math.min(rules.height*rules.coverage/100,rules.far)*(1+(policies.density || 0)/100);
+    const opportunity=capacityFAR>0?Math.max(0,Math.min(1,(capacityFAR-realizedFAR)/capacityFAR)):0;
+    return {realizedFAR,affordableFAR,capacityFAR,opportunity};
+  }
+  function color(score,shade=1) {
+    const t=Math.max(0,Math.min(1,score));
+    const pale=[247,249,252],navy=[24,46,83];
+    return `rgb(${pale.map((v,i)=>Math.round(Math.max(0,Math.min(255,(v+(navy[i]-v)*t)*shade)))).join(',')})`;
+  }
+  const api = { baseline, build, measure, indicators, color };
   if (typeof module !== 'undefined') module.exports = api;
   else root.SpatialModel = api;
 })(globalThis);

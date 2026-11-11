@@ -2,7 +2,7 @@
   'use strict';
   const mount = document.getElementById('model-mount');
   mount.innerHTML = `<div class="model-heading"><h1>A NEIGHBORHOOD OF POSSIBILITIES</h1><p>25 fictional blocks / 500 original lots<br>Spatial capacity, not a development forecast.</p></div>
-    <div class="model-toolbar"><button id="tenant-mode" aria-pressed="false">AMI cloud</button><button id="tenant-original" aria-pressed="true">Original</button><button id="tenant-new" aria-pressed="true">New</button><button id="geometry-baseline" aria-pressed="false">View baseline</button><button id="rotate-left" aria-label="Rotate left">↶</button><button id="rotate-right" aria-label="Rotate right">↷</button><button id="zoom-in" aria-label="Zoom in">＋</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="reset-view">Reset view</button></div>
+    <div class="building-color-control"><label for="building-color">BUILDING COLOR</label><select id="building-color"><option value="opportunity">Development opportunity</option><option value="affordable">Affordable housing density</option></select><div class="building-color-ramp"></div><div class="building-color-labels"><span id="building-color-low">0%</span><span id="building-color-high">100%</span></div><p id="building-color-description"></p></div><div class="model-toolbar"><button id="tenant-mode" aria-pressed="false">AMI cloud</button><button id="tenant-original" aria-pressed="true">Original</button><button id="tenant-new" aria-pressed="true">New</button><button id="geometry-baseline" aria-pressed="false">View baseline</button><button id="rotate-left" aria-label="Rotate left">↶</button><button id="rotate-right" aria-label="Rotate right">↷</button><button id="zoom-in" aria-label="Zoom in">＋</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="reset-view">Reset view</button></div>
     <div class="tenant-legend"><span class="original-key">● Original tenants</span><span class="new-key">● New tenants</span><span>1 point = 1 household · partial points fade</span></div><div class="tenant-summary" aria-label="Live scenario summary" aria-live="off"></div><canvas id="neighborhood-canvas" tabindex="0" aria-label="Fictional neighborhood. Drag or use left and right arrow keys to rotate. Scroll or use plus and minus to zoom."></canvas>
     <div class="model-inspector" hidden></div><details class="scene-stats"><summary>Spatial statistics</summary><div class="model-stats" aria-label="Spatial results"></div></details>
     <p class="model-caption">Drag to rotate · Scroll to zoom · Click a building<br><span id="geometry-status">Scenario / baseline spatial rules</span><br>Points follow the household model and year. Spatial controls change illustrative placement; they do not change household outcomes. In AMI view, height = income / inflation-adjusted reference AMI.</p>
@@ -41,6 +41,7 @@
   syncPanels();
   const canvas = document.getElementById('neighborhood-canvas'), ctx = canvas.getContext('2d');
   const inspector = mount.querySelector('.model-inspector');
+  let colorMode="opportunity";
   let snapshots=null, cloud=false, showOriginal=true, showNew=true, pointHits=[];
   let policies = {}, baseline = false, angle = -.65, zoom = 1, hits = [], selected = null;
   const baseMetrics = SpatialModel.measure(SpatialModel.build());
@@ -60,17 +61,24 @@
     }
     poly([[-16,-16],[596,-16],[596,496],[-16,496]], '#c5cbd1');
     for (let y = 0; y < 5; y++) for (let x = 0; x < 5; x++) poly([[x*120-3,y*100-3],[x*120+103,y*100-3],[x*120+103,y*100+83],[x*120-3,y*100+83]], '#e6e9ec');
-    const bs = SpatialModel.build(baseline ? {} : policies);
+    const colorPolicies=baseline?{}:policies;
+    const bs = SpatialModel.build(colorPolicies);
+    const colorData=new Map(bs.map(b=>[b.id,SpatialModel.indicators(b,colorPolicies)]));
+    document.getElementById('building-color-high').textContent=colorMode==='affordable'?'4.0+ FAR':'100%';
+    document.getElementById('building-color-low').textContent=colorMode==='affordable'?'0 FAR':'0%';
+    document.getElementById('building-color-description').textContent=colorMode==='affordable'?'Darker = more affordable floor area per land area. Uniform policy share; illustrative allocation.':'Darker = more unused permitted capacity. Capacity proxy, not expected profit.';
+
     bs.sort((a,b) => ((a.x+a.w/2)*si+(a.y+a.d/2)*co)-((b.x+b.w/2)*si+(b.y+b.d/2)*co));
     for (const b of bs) {
       const {x,y,w,d,h} = b;
-      if(cloud) { poly([[x,y],[x+w,y],[x+w,y+d],[x,y+d]],'#e4e8ec99',b); continue; }
+      const indicator=colorData.get(b.id), score=colorMode==='affordable'?indicator.affordableFAR/4:indicator.opportunity;
+      if(cloud) { poly([[x,y],[x+w,y],[x+w,y+d],[x,y+d]],SpatialModel.color(score),b); continue; }
       const faces = [ [[x,y,0],[x+w,y,0],[x+w,y,h],[x,y,h]], [[x+w,y,0],[x+w,y+d,0],[x+w,y+d,h],[x+w,y,h]], [[x+w,y+d,0],[x,y+d,0],[x,y+d,h],[x+w,y+d,h]], [[x,y+d,0],[x,y,0],[x,y,h],[x,y+d,h]] ];
       // Visible Y face is determined by cos(angle), X face by sin(angle).
       // Swapping these tests renders back faces and makes the boxes look broken.
-      poly(co < 0 ? faces[0] : faces[2], '#8d99a5', b);
-      poly(si > 0 ? faces[1] : faces[3], '#b1bbc4', b);
-      poly([[x,y,h],[x+w,y,h],[x+w,y+d,h],[x,y+d,h]], '#edf0f3', b);
+      poly(co < 0 ? faces[0] : faces[2], SpatialModel.color(score,.82), b);
+      poly(si > 0 ? faces[1] : faces[3], SpatialModel.color(score,.92), b);
+      poly([[x,y,h],[x+w,y,h],[x+w,y+d,h],[x,y+d,h]], SpatialModel.color(score), b);
     }
     const snapshot=snapshots?.[baseline?'baseline':'scenario'];
     if(snapshot) {
@@ -102,8 +110,9 @@
     mount.querySelector('.model-stats').innerHTML = [ [m.parcels,'BUILDING PARCELS',delta(m.parcels,baseMetrics.parcels)], [m.far.toFixed(2),'REALIZED GROSS FAR',delta(m.far,baseMetrics.far,'×')], [fmt(Math.round(m.area)),'GROSS FLOOR AREA / M²',delta(m.area,baseMetrics.area)], [fmt(m.open)+'%','UNCOVERED LOT AREA',delta(m.open,baseMetrics.open,' pp')] ].map(([v,l,d])=>`<div class="model-stat"><strong>${v}</strong><span>${l}</span><small>${d}</small></div>`).join('');
     document.getElementById('geometry-status').textContent = baseline ? 'BASELINE / spatial policies excluded' : `SCENARIO / ${Object.keys(policies).filter(k=>k in SpatialModel.baseline).length} active spatial rules`;
     const picked = bs.find(b=>b.id===selected); inspector.hidden = !picked;
-    if (picked) inspector.innerHTML = `<b>PARCEL ${picked.id}</b><br>${picked.count} original lot(s)<br>${picked.floors} floors / ${picked.h} m<br>${fmt(picked.land)} m² land<br>${fmt(picked.footprint)} m² footprint`;
+    if (picked) inspector.innerHTML = `<b>PARCEL ${picked.id}</b><br>${picked.count} original lot(s)<br>${picked.floors} floors / ${picked.h} m<br>${fmt(picked.land)} m² land<br>${fmt(picked.footprint)} m² footprint<br>Affordable density: ${colorData.get(picked.id).affordableFAR.toFixed(2)} FAR<br>Unused capacity: ${(colorData.get(picked.id).opportunity*100).toFixed(1)}%`;
   }
+  document.getElementById('building-color').onchange=e=>{colorMode=e.target.value;draw();};
   document.addEventListener('simulation:update', e => { policies = e.detail.policies; snapshots=e.detail.results; draw(); });
   document.getElementById('tenant-mode').onclick=e=>{cloud=!cloud;e.currentTarget.setAttribute('aria-pressed',String(cloud));e.currentTarget.textContent=cloud?'Buildings':'AMI cloud';selected=null;draw();};
   document.getElementById('tenant-original').onclick=e=>{showOriginal=!showOriginal;e.currentTarget.setAttribute('aria-pressed',String(showOriginal));draw();};

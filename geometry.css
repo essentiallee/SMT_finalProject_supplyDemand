@@ -95,3 +95,13 @@ body{overflow:hidden}
  .scene-stats .model-stat span,.scene-stats .model-stat small{font-size:9px}
 }
 @media(prefers-reduced-motion:reduce){.scene-panel-controls button{transition:none}}
+
+/* Live headline figures follow the same selected snapshot as the tenant bar. */
+.scene-live-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 8px 2px;padding-top:9px;border-top:1px solid rgba(140,150,160,.18);font-variant-numeric:tabular-nums}
+.scene-live-metrics>div{min-width:0;text-align:center}
+.scene-live-metrics>div+div{border-left:1px solid rgba(140,150,160,.18)}
+.scene-live-metrics span{display:block;font-size:8px;letter-spacing:.05em;color:#77818a;line-height:1.4}
+.scene-live-metrics strong{display:block;font-size:16px;line-height:1.7;font-weight:500;color:#525d68}
+#model-mount>.tenant-legend{bottom:205px}
+@media(max-width:1000px){#model-mount>.tenant-legend{bottom:260px}}
+@media(max-width:600px){.scene-live-metrics{gap:4px;margin-left:2px;margin-right:2px}.scene-live-metrics span{font-size:7px}.scene-live-metrics strong{font-size:15px}}

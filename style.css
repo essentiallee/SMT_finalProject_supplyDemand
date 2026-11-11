@@ -118,3 +118,10 @@ button:focus-visible,input:focus-visible,summary:focus-visible,a:focus-visible{o
 .simulation-panel::-webkit-scrollbar-thumb{background:rgba(160,169,179,.45);border-radius:999px}
 .simulation-panel::-webkit-scrollbar-track{background:transparent}
 @supports not (backdrop-filter:blur(1px)){.tool-panel,.credits-panel,.simulation-panel{background:rgba(242,244,246,.95)}}
+
+/* Cohort results remain scrollable within the existing glass panel. */
+.result-title { flex-wrap: wrap; gap: .35rem; }
+.result-title h2 { font-size: .72rem; }
+.result-title span { font-size: .65rem; }
+.result-list { max-height: 56vh; overflow-y: auto; padding: 4px; }
+@media (max-width: 760px) { .result-list { max-height: none; } }

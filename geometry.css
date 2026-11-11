@@ -18,3 +18,80 @@
 @media(max-width:600px){.simulation-layout{display:flex}.simulation-space{position:relative;top:0;order:-1;height:80vh;min-height:580px;padding:0}.right-column{display:flex}.model-heading h1{font-size:17px}.model-stats{gap:8px}.model-stat{padding:10px}.model-stat strong{font-size:20px}.tool-panel{width:100%}.policy-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 
 .tenant-legend{display:flex;flex-wrap:wrap;gap:8px;padding:8px;font-size:10px;color:#59636f}.original-key{color:#527816}.new-key{color:#2469bf}.tenant-counts{font-size:11px;line-height:1.6;padding:0 8px}.tenant-composition{display:flex;height:7px;border-radius:8px;overflow:hidden;margin:6px 8px 2px;background:#d8dde2}.tenant-composition i{height:100%;display:block}.tenant-summary{min-height:48px}.model-toolbar button[aria-pressed=false]#tenant-original,.model-toolbar button[aria-pressed=false]#tenant-new{opacity:.5} .simulation-space{min-height:680px} #neighborhood-canvas{min-height:280px}
+
+/* Let base text determine panel height and contain all seven arrow bars. */
+.tool-panel .condition-box {
+  height: auto;
+  min-height: 130px;
+  padding-bottom: 14px;
+}
+.tool-panel .flow-arrow {
+  box-sizing: border-box;
+  flex: none;
+  width: 36px;
+  min-width: 36px;
+  height: 76px;
+  margin: 18px auto 22px;
+  padding: 20px 0 3px;
+  gap: 3px;
+  justify-content: flex-start;
+}
+.tool-panel .flow-arrow::before {
+  top: 0;
+  height: 17px;
+}
+.tool-panel .flow-arrow i {
+  flex: 0 0 5px;
+  height: 5px;
+  min-height: 5px;
+}
+
+/* Full-viewport scene with independently dismissible glass overlays. */
+body{overflow:hidden}
+.simulation-layout{display:block;min-height:100dvh;padding:0;isolation:isolate}
+.simulation-layout .simulation-space{position:fixed;inset:0;width:100%;height:100dvh;min-height:0;margin:0;padding:0;z-index:0}
+#model-mount{height:100%;display:block}
+#neighborhood-canvas{position:absolute;inset:0;width:100%;height:100%;min-height:0;z-index:0}
+.simulation-layout>.tool-panel{position:fixed;left:18px;top:64px;width:clamp(270px,24vw,350px);max-height:calc(100dvh - 84px);z-index:5;overflow:auto}
+.simulation-layout>.right-column{position:fixed;right:18px;top:64px;width:clamp(270px,24vw,350px);height:calc(100dvh - 84px);display:flex;gap:14px;z-index:5;pointer-events:none}
+.right-column>*{pointer-events:auto}
+.right-column .simulation-panel{height:auto;min-height:0;max-height:70dvh;padding:16px}
+.right-column .credits-panel{flex-shrink:0}
+.right-column .result-list{max-height:none}
+.scene-hide-left .simulation-layout>.tool-panel,.scene-hide-right .simulation-layout>.right-column{display:none}
+.scene-panel-controls{position:fixed;top:14px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:20;white-space:nowrap}
+.scene-panel-controls button,.scene-stats>summary{font:inherit;font-size:11px;color:#58616b;border:1px solid var(--edge);border-radius:999px;background:rgba(244,246,248,.85);backdrop-filter:blur(18px);padding:10px 15px;box-shadow:var(--raised);cursor:pointer;list-style:none}
+.scene-panel-controls button[aria-pressed=true]{box-shadow:var(--inset)}
+#model-mount>.model-heading{position:absolute;top:65px;left:50%;transform:translateX(-50%);width:min(430px,38vw);text-align:center;pointer-events:none;z-index:1;padding:0}
+.model-heading h1{font-size:13px;letter-spacing:.12em}.model-heading p{font-size:10px}
+#model-mount>.model-toolbar{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);max-width:calc(100vw - 32px);width:max-content;justify-content:center;margin:0;z-index:3;padding:8px;border-radius:24px;background:rgba(241,244,247,.82);backdrop-filter:blur(18px);box-shadow:var(--raised)}
+#model-mount>.tenant-legend{position:absolute;left:50%;bottom:151px;transform:translateX(-50%);width:min(440px,42vw);justify-content:center;z-index:2;padding:4px 8px;pointer-events:none}
+#model-mount>.tenant-summary{position:absolute;left:50%;bottom:88px;transform:translateX(-50%);width:min(440px,42vw);z-index:2;pointer-events:none;border-radius:16px;background:rgba(243,246,248,.8);backdrop-filter:blur(14px);padding:8px}
+.tenant-counts{text-align:center;font-size:10px}.tenant-composition{height:5px}
+.scene-stats{position:absolute;left:18px;bottom:18px;z-index:7;max-width:calc(100vw - 36px)}
+.scene-stats .model-stats{position:absolute;bottom:48px;left:0;width:min(440px,calc(100vw - 36px));margin:0;padding:12px;background:rgba(240,243,246,.94);backdrop-filter:blur(18px);border-radius:20px;box-shadow:var(--raised)}
+.scene-stats .model-stat{padding:9px}.scene-stats .model-stat strong{font-size:18px}
+#model-mount>.model-caption{display:none}
+#model-mount>.model-notes{position:absolute;right:18px;bottom:18px;margin:0;z-index:7;max-width:300px}
+.model-notes[open] .notes-body{left:auto;width:min(400px,calc(100vw - 36px));right:0}
+#model-mount>.model-inspector{top:145px;right:auto;left:50%;transform:translateX(-50%);z-index:4}
+@media(max-width:1000px){
+ #model-mount>.model-heading{top:60px;width:80vw}.model-heading p{display:none}
+ .simulation-layout>.tool-panel,.simulation-layout>.right-column{top:100px;width:280px;max-height:calc(100dvh - 180px)}
+ .simulation-layout>.right-column{height:calc(100dvh - 180px)}
+ #model-mount>.model-toolbar{bottom:70px;width:min(570px,calc(100vw - 24px))}
+ #model-mount>.tenant-summary{bottom:140px;width:min(380px,90vw)}
+ #model-mount>.tenant-legend{bottom:206px;width:min(400px,92vw);font-size:9px}
+ #model-mount>.model-notes{bottom:14px;right:12px}.scene-stats{bottom:14px;left:12px}
+}
+@media(max-width:600px){
+ .simulation-layout>.tool-panel{left:12px;width:calc(100vw - 24px)}
+ .simulation-layout>.right-column{right:12px;width:calc(100vw - 24px)}
+ .simulation-layout>.right-column{z-index:6}
+ .scene-panel-controls{top:12px;gap:5px}.scene-panel-controls button{padding:9px 12px}
+ #model-mount>.model-toolbar{gap:5px;padding:6px}.model-toolbar button{font-size:10px;padding:7px}
+ #model-mount>.tenant-legend span:last-child{display:none}
+ .scene-stats>summary,.model-notes>summary{font-size:9px;padding:8px}
+ .scene-stats .model-stat span,.scene-stats .model-stat small{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){.scene-panel-controls button{transition:none}}

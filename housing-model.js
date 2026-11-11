@@ -81,9 +81,10 @@ const HousingModel = (() => {
     const result={...history[low]};
     Object.keys(result).forEach(key => {
       if(typeof result[key]==='number') result[key]+= (history[high][key]-result[key])*fraction;
+      else if(Array.isArray(result[key])) result[key]=result[key].map((v,i)=>v+(history[high][key][i]-v)*fraction);
     });
     result.year=year; return result;
   }
-  return {defaults,simulate,at};
+  return {defaults,simulate,at, metadata: Object.freeze({incomes: Object.freeze([...incomes]), referenceAMI: 120100, incomeGrowth: defaults.incomeGrowth})};
 })();
 if(typeof module !== 'undefined') module.exports=HousingModel;

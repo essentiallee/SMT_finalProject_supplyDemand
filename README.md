@@ -85,3 +85,17 @@ Toggle Buildings / AMI cloud. Lime points represent original households, blue po
 One point has weight one household; the final point per income band fades by its fractional weight. The composition bar shows occupied original/new households and vacant completed units. Stable cohort-band indices and deterministic coordinates avoid random reshuffling during timeline playback. These are illustrative assignments, not observed addresses or persistent individual agents; newcomer turnover is aggregated. Spatial policy changes can reposition points within changed buildings. Building-view points are an x-ray overlay, not physical occlusion.
 
 AMI cloud uses annual income / inflation-adjusted reference AMI × 100. Reference AMI is the supplied $120,100; both income and reference grow at 3.3%, so vertical band heights stay fixed while composition changes. Subsidy changes affordability, not reported household income or AMI. Six representative income values form six visible layers; no within-band income distribution is invented. Local representative incomes and regional reference AMI are different concepts. Fractional-month cohort arrays are interpolated consistently with totals. Click a point to inspect its cohort, representative income and AMI. Original/new filter buttons and baseline comparison are keyboard accessible; canvas rotation and zoom retain keyboard controls.
+
+## Estimated apartment price and financing
+
+A new result immediately below rent compares an illustrative per-unit income-supported value at the same year. It is not a sale-price observation, owner-occupier affordability measure, or a forecast of market clearing.
+
+`NOI = effective monthly rent × 12 × occupancy fraction × (1 − 0.30)`
+
+`annual mortgage constant = 12r / [1 − (1+r)^(-360)]`, where `r = annual interest / 100 / 12`; at zero interest it is `12/360`.
+
+`apartment price = NOI / [0.80 × annual mortgage constant + 0.20 × 0.06]`
+
+Assumptions: 30-year amortizing loan, 80% loan-to-value, 30% operating expense ratio, 6% required annual equity cash yield. Rent is the existing effective portfolio rent, and occupancy averages vacancy across all completed units. This is a rental-property underwriting proxy applied per apartment; units are homogeneous. It excludes taxes on transactions, resale, capital expenditure and appreciation expectations. Coefficients are illustrative.
+
+The activated interest tile supplies the annual loan rate to both this valuation and the existing construction-finance rule. Inactive rate is 5%. Activating it at 5% correctly causes no difference. At fixed rent and occupancy, a higher rate lowers this supported price and a lower rate raises it. Rate changes reprice the scenario immediately, including at year zero; policies are assumed active from inception. More effective rent or occupancy raises value, while affordable-rent rules can reduce it. The displayed percent difference includes all active policy effects, not just interest. There is no feedback from this price into rent, migration, tenant income, or developer investment behavior.

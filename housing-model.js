@@ -4,12 +4,23 @@ const HousingModel = (() => {
   const defaults = Object.freeze({ units: 1000, occupancy: .8, rent: 1648,
     annualRentGrowth: .083, incomeGrowth: .033, annualArrivals: 60,
     pressureThreshold: .05, pressureSlope: .20, maxPremium: .10,
-    constructionLag: 3, annualBuildLimit: 50, marketInterest: 5 });
+    constructionLag: 3, annualBuildLimit: 50, marketInterest: 5,
+    loanYears: 30, loanToValue: .8, operatingExpenseShare: .30, equityYield: .06 });
   const shares = [19.1, 15.6, 24.2, 18.7, 12.9, 9.6];
   // Provisional local incomes inferred from table's affordable rents (30% income rule).
   // Open-ended upper band uses an explicit illustrative representative income.
   const incomes = [618*40, 1030*40, 1648*40, 2472*40, 3399*40, 160000];
   const sum = a => a.reduce((x,y) => x+y,0);
+  // Income-supported per-apartment value: NOI funds mortgage service and equity return.
+  // This is an illustrative underwriting proxy, not an observed transaction price.
+  function apartmentValuation(monthlyRent, occupancy, annualInterest, config = defaults) {
+    const c={...defaults,...config};
+    const monthlyRate=annualInterest/100/12, months=c.loanYears*12;
+    const mortgageConstant=monthlyRate===0 ? 12/months : 12*monthlyRate/(1-(1+monthlyRate)**(-months));
+    const netOperatingIncome=monthlyRent*12*occupancy*(1-c.operatingExpenseShare);
+    const requiredYield=c.loanToValue*mortgageConstant+(1-c.loanToValue)*c.equityYield;
+    return {apartmentPrice:netOperatingIncome/requiredYield, netOperatingIncome, mortgageConstant, requiredYield};
+  }
   function simulate(policies = {}, config = {}) {
     const c = {...defaults, ...config};
     const original = shares.map(s => c.units*c.occupancy*s/sum(shares));
@@ -33,7 +44,9 @@ const HousingModel = (() => {
         incomeTotal += n*income*growth;
         if(effectiveRent*12/(income*growth*support)>.30) burdened += n;
       });
-      return {year, units, rent, effectiveRent, original:sum(original), newcomers:sum(newcomers),
+      const interestRate=policies.interest ?? c.marketInterest;
+      const valuation=apartmentValuation(effectiveRent,occupied/units,interestRate,c);
+      return {...valuation, interestRate, year, units, rent, effectiveRent, original:sum(original), newcomers:sum(newcomers),
         retention:sum(original)/initialOriginal*100, occupied, occupancy:occupied/units*100,
         newcomerShare:occupied ? sum(newcomers)/occupied*100 : 0,
         burdened:occupied ? burdened/occupied*100 : 0, waiting:sum(waiting), cumulativeArrivals,
@@ -85,6 +98,6 @@ const HousingModel = (() => {
     });
     result.year=year; return result;
   }
-  return {defaults,simulate,at, metadata: Object.freeze({incomes: Object.freeze([...incomes]), referenceAMI: 120100, incomeGrowth: defaults.incomeGrowth})};
+  return {defaults,simulate,at,apartmentValuation, metadata: Object.freeze({incomes: Object.freeze([...incomes]), referenceAMI: 120100, incomeGrowth: defaults.incomeGrowth})};
 })();
 if(typeof module !== 'undefined') module.exports=HousingModel;

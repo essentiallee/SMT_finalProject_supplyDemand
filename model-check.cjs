@@ -21,3 +21,19 @@ assert(model.simulate({affordable:50})[240].retention>base[240].retention);
 assert(model.simulate({subsidy:50})[240].retention>base[240].retention);
 assert.deepEqual(model.at(base,4.3),model.at(model.simulate(),4.3));
 console.log('Model checks passed. Year 20 baseline:',JSON.stringify(base[240]));
+// Financing changes valuation even with no density policy or new construction.
+const low=model.simulate({interest:3}),high=model.simulate({interest:10});
+assert.deepEqual(model.simulate({interest:5}),base);
+for(const i of [0,120,240]) {
+ assert(low[i].apartmentPrice>base[i].apartmentPrice);
+ assert(high[i].apartmentPrice<base[i].apartmentPrice);
+ assert.equal(high[i].units,base[i].units);
+ assert.equal(high[i].rent,base[i].rent);
+ assert(Number.isFinite(high[i].apartmentPrice));
+}
+const zero=model.apartmentValuation(1648,.8,0);
+assert(Number.isFinite(zero.apartmentPrice));
+assert.equal(model.apartmentValuation(1648,0,5).apartmentPrice,0);
+assert(model.apartmentValuation(2000,.8,5).apartmentPrice>model.apartmentValuation(1648,.8,5).apartmentPrice);
+assert.equal(model.at(base,1.25).apartmentPrice,(base[15].apartmentPrice));
+console.log('Apartment valuation checks passed. Initial prices by interest rate:',Object.fromEntries([3,5,10].map(interest=>[`${interest}%`,Math.round(model.simulate({interest})[0].apartmentPrice)])));

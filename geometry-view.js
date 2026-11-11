@@ -2,7 +2,7 @@
   'use strict';
   const mount = document.getElementById('model-mount');
   mount.innerHTML = `<div class="model-heading"><h1>A NEIGHBORHOOD OF POSSIBILITIES</h1><p>25 fictional blocks / 500 original lots<br>Spatial capacity, not a development forecast.</p></div>
-    <div class="building-color-control"><label for="building-color">BUILDING COLOR</label><select id="building-color"><option value="opportunity">Development opportunity</option><option value="affordable">Affordable housing density</option></select><div class="building-color-ramp"></div><div class="building-color-labels"><span id="building-color-low">0%</span><span id="building-color-high">100%</span></div><p id="building-color-description"></p></div><div class="model-toolbar"><button id="tenant-mode" aria-pressed="false">AMI cloud</button><button id="scene-play" type="button" aria-label="Play simulation" aria-pressed="false" aria-controls="timeline">▶ Play</button><button id="tenant-original" aria-pressed="true">Original</button><button id="tenant-new" aria-pressed="true">New</button><button id="geometry-baseline" aria-pressed="false">View baseline</button><button id="rotate-left" aria-label="Rotate left">↶</button><button id="rotate-right" aria-label="Rotate right">↷</button><button id="zoom-in" aria-label="Zoom in">＋</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="reset-view">Reset view</button></div>
+    <div class="building-color-control"><label for="building-color">BUILDING COLOR</label><select id="building-color"><option value="opportunity">Development opportunity</option><option value="affordable">Affordable housing density</option></select><div class="building-color-ramp"></div><div class="building-color-labels"><span id="building-color-low">0%</span><span id="building-color-high">100%</span></div><p id="building-color-description"></p></div><div class="model-toolbar"><button id="tenant-mode" aria-pressed="false">AMI cloud</button><button id="scene-play" type="button" aria-label="Play simulation" aria-pressed="false" aria-controls="timeline">▶ Play</button><button id="tenant-original" aria-pressed="true">Original</button><button id="tenant-new" aria-pressed="true">New</button><button id="geometry-baseline" aria-pressed="false">View baseline</button><button id="rotate-left" aria-label="Rotate left">↶</button><button id="rotate-right" aria-label="Rotate right">↷</button><button id="zoom-in" aria-label="Zoom in">＋</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="reset-view">Reset view</button><span id="spatial-live-status" role="status" style="font-size:10px;align-self:center;padding:4px 8px">Live scenario</span></div>
     <div class="tenant-legend"><span class="original-key">● Original tenants</span><span class="new-key">● New tenants</span><span>1 point = 1 household · partial points fade</span></div><div class="tenant-summary" aria-label="Live scenario summary" aria-live="off"></div><canvas id="neighborhood-canvas" tabindex="0" aria-label="Fictional neighborhood. Drag or use left and right arrow keys to rotate. Scroll or use plus and minus to zoom."></canvas>
     <div class="model-inspector" hidden></div><details class="scene-stats"><summary>Spatial statistics</summary><div class="model-stats" aria-label="Spatial results"></div></details>
     <p class="model-caption">Drag to rotate · Scroll to zoom · Click a building<br><span id="geometry-status">Scenario / baseline spatial rules</span><br>Points follow the household model and year. Spatial controls change illustrative placement; they do not change household outcomes. In AMI view, height = income / inflation-adjusted reference AMI.</p>
@@ -47,8 +47,13 @@
   let colorMode="opportunity";
   let snapshots=null, cloud=false, showOriginal=true, showNew=true, pointHits=[];
   let policies = {}, baseline = false, angle = -.65, zoom = 1, hits = [], selected = null;
+  let renderedBuildings=[], transitionFrom=new Map(),transitionStart=-Infinity,sceneFrame=null;
+  const motionPreference=matchMedia('(prefers-reduced-motion: reduce)');
+  const spatialKeys=['height','coverage','lots','far','density'];
   const baseMetrics = SpatialModel.measure(SpatialModel.build());
   function draw() {
+    if(sceneFrame!==null){cancelAnimationFrame(sceneFrame);sceneFrame=null;}
+
     const box = canvas.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
     canvas.width = Math.round(box.width * dpr); canvas.height = Math.round(box.height * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -66,7 +71,17 @@
     for (let y = 0; y < 5; y++) for (let x = 0; x < 5; x++) poly([[x*120-3,y*100-3],[x*120+103,y*100-3],[x*120+103,y*100+83],[x*120-3,y*100+83]], '#e6e9ec');
     const snapshot=snapshots?.[baseline?'baseline':'scenario'];
     const colorPolicies=baseline?{}:policies;
-    const bs = SpatialModel.build(colorPolicies);
+    const targetBuildings=SpatialModel.build(colorPolicies);
+    const elapsed=motionPreference.matches?1:Math.min(1,(performance.now()-transitionStart)/320);
+    const eased=1-(1-elapsed)**3;
+    const bs=targetBuildings.map(b=>{
+      const from=transitionFrom.get(b.id);
+      if(!from || from.count!==b.count || elapsed>=1)return b;
+      const next={...b};
+      ['x','y','w','d','h','footprint','floors'].forEach(k=>next[k]=from[k]+(b[k]-from[k])*eased);
+      return next;
+    });
+    renderedBuildings=bs.map(b=>({...b}));
     const colorData=new Map(bs.map(b=>[b.id,SpatialModel.indicators(b,colorPolicies,snapshot,snapshots?.baseline)]));
     document.getElementById('building-color-high').textContent=colorMode==='affordable'?'4.0+ FAR':'100 index';
     document.getElementById('building-color-low').textContent=colorMode==='affordable'?'0 FAR':'0 index';
@@ -114,14 +129,34 @@
     mount.querySelector('.model-stats').innerHTML = [ [m.parcels,'BUILDING PARCELS',delta(m.parcels,baseMetrics.parcels)], [m.far.toFixed(2),'REALIZED GROSS FAR',delta(m.far,baseMetrics.far,'×')], [fmt(Math.round(m.area)),'GROSS FLOOR AREA / M²',delta(m.area,baseMetrics.area)], [fmt(m.open)+'%','UNCOVERED LOT AREA',delta(m.open,baseMetrics.open,' pp')] ].map(([v,l,d])=>`<div class="model-stat"><strong>${v}</strong><span>${l}</span><small>${d}</small></div>`).join('');
     document.getElementById('geometry-status').textContent = baseline ? 'BASELINE / spatial policies excluded' : `SCENARIO / ${Object.keys(policies).filter(k=>k in SpatialModel.baseline).length} active spatial rules`;
     const picked = bs.find(b=>b.id===selected); inspector.hidden = !picked;
-    if (picked) inspector.innerHTML = `<b>PARCEL ${picked.id}</b><br>${picked.count} original lot(s)<br>${picked.floors} floors / ${picked.h} m<br>${fmt(picked.land)} m² land<br>${fmt(picked.footprint)} m² footprint<br>Affordable density: ${colorData.get(picked.id).affordableFAR.toFixed(2)} FAR<br>Opportunity index: ${(colorData.get(picked.id).opportunity*100).toFixed(1)} / 100`;
+    if(elapsed<1)sceneFrame=requestAnimationFrame(draw);
+    if (picked) inspector.innerHTML = `<b>PARCEL ${picked.id}</b><br>${picked.count} original lot(s)<br>${fmt(picked.floors)} floors / ${fmt(picked.h)} m<br>${fmt(picked.land)} m² land<br>${fmt(picked.footprint)} m² footprint<br>Affordable density: ${colorData.get(picked.id).affordableFAR.toFixed(2)} FAR<br>Opportunity index: ${(colorData.get(picked.id).opportunity*100).toFixed(1)} / 100`;
   }
   document.getElementById('building-color').onchange=e=>{colorMode=e.target.value;draw();};
-  document.addEventListener('simulation:update', e => { policies = e.detail.policies; snapshots=e.detail.results; draw(); });
+  document.addEventListener('simulation:update', e => {
+    const next=e.detail.policies;
+    const changed=JSON.stringify(next)!==JSON.stringify(policies);
+    const spatialChanged=spatialKeys.some(k=>next[k]!==policies[k]);
+    if(changed){
+      transitionFrom=new Map(renderedBuildings.map(b=>[b.id,{...b}]));
+      transitionStart=performance.now();
+      // Editing a scenario should reveal it, even after viewing the baseline.
+      baseline=false;
+      const baselineButton=document.getElementById('geometry-baseline');
+      baselineButton.setAttribute('aria-pressed','false');baselineButton.textContent='View baseline';
+      if(spatialChanged){
+        cloud=false;
+        const modeButton=document.getElementById('tenant-mode');
+        modeButton.setAttribute('aria-pressed','false');modeButton.textContent='AMI cloud';
+      }
+      document.getElementById('spatial-live-status').textContent=spatialChanged?'Building shape + color updated':'Policy color updated';
+    }
+    policies={...next};snapshots=e.detail.results;draw();
+  });
   document.getElementById('tenant-mode').onclick=e=>{cloud=!cloud;e.currentTarget.setAttribute('aria-pressed',String(cloud));e.currentTarget.textContent=cloud?'Buildings':'AMI cloud';selected=null;draw();};
   document.getElementById('tenant-original').onclick=e=>{showOriginal=!showOriginal;e.currentTarget.setAttribute('aria-pressed',String(showOriginal));draw();};
   document.getElementById('tenant-new').onclick=e=>{showNew=!showNew;e.currentTarget.setAttribute('aria-pressed',String(showNew));draw();};
-  document.getElementById('geometry-baseline').onclick = e => { baseline = !baseline; e.currentTarget.setAttribute('aria-pressed',String(baseline)); e.currentTarget.textContent = baseline ? 'View scenario' : 'View baseline'; draw(); };
+  document.getElementById('geometry-baseline').onclick = e => { baseline = !baseline; transitionStart=-Infinity; e.currentTarget.setAttribute('aria-pressed',String(baseline)); e.currentTarget.textContent = baseline ? 'View scenario' : 'View baseline'; draw(); };
   const rotate = d => { angle += d; draw(); }, magnify = d => { zoom = Math.max(.5,Math.min(2.5,zoom*d)); draw(); };
   document.getElementById('rotate-left').onclick = ()=>rotate(-.25); document.getElementById('rotate-right').onclick = ()=>rotate(.25);
   document.getElementById('zoom-in').onclick = ()=>magnify(1.15); document.getElementById('zoom-out').onclick = ()=>magnify(1/1.15);

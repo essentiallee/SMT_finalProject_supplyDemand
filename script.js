@@ -1,6 +1,6 @@
 'use strict';
 
-// Interface demonstration only. Replace demoModel with the team's empirical model.
+// Interface backed by the illustrative household cohort model in housing-model.js.
 const policyMetrics = [
   { id: 'interest', label: 'Interest rate', min: 3, max: 25, step: 0.5, value: 5, unit: '%' },
   { id: 'affordable', label: 'Affordable units', min: 0, max: 50, step: 1, value: 20, unit: '%' },
@@ -10,7 +10,7 @@ const policyMetrics = [
 const $ = id => document.getElementById(id);
 const timeline = $('timeline');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-const baseCondition = Object.freeze({ housing: 1000, households: 1200 });
+const baseCondition = HousingModel.defaults;
 const state = { year: 0, playing: false, active: new Set(), values: Object.fromEntries(policyMetrics.map(p => [p.id, p.value])) };
 const DURATION_SECONDS = 60;
 let frame = null;
@@ -171,19 +171,14 @@ function setupPolicyDrag(handle, card, id) {
   handle.addEventListener('lostpointercapture', () => endDrag(false));
 }
 
-// Baselines depend only on the fixed baseCondition; only activated policies
-// enter this synthetic scenario. The equations are NOT a validated forecast.
+// Cache complete histories so playback and scrubbing read the same trajectory.
+const baselineHistory = HousingModel.simulate();
+let scenarioKey = '', scenarioHistory = baselineHistory;
 function demoModel(year) {
-  const progress = year / 20;
-  const policy = id => state.active.has(id) ? state.values[id] : 0;
-  const baselineAccess = Math.min(100, baseCondition.housing / baseCondition.households * 100);
-  const baselineValue = baseCondition.housing * 0.0141;
-  const supplyChange = (policy('density') * .004 + policy('subsidy') * .003 - policy('interest') * .012) * progress;
-  return {
-    baselineAccess, baselineValue,
-    access: Math.max(0, Math.min(100, baselineAccess * (1 + supplyChange) + policy('affordable') * .08 * progress)),
-    value: Math.max(0, baselineValue * (1 + supplyChange - policy('affordable') * .002 * progress)),
-  };
+  const policies=Object.fromEntries([...state.active].sort().map(id=>[id,state.values[id]]));
+  const key=JSON.stringify(policies);
+  if(key!==scenarioKey) { scenarioHistory=HousingModel.simulate(policies); scenarioKey=key; }
+  return {baseline:HousingModel.at(baselineHistory,year),scenario:HousingModel.at(scenarioHistory,year)};
 }
 function render() {
   policyMetrics.forEach(policy => {
@@ -195,10 +190,16 @@ function render() {
   timeline.setAttribute('aria-valuetext', `${state.year.toFixed(1)} years`);
   $('play-track').style.setProperty('--progress', state.year / 20);
   $('time-label').textContent = `YEAR ${state.year.toFixed(1).padStart(4, '0')} / 20`;
-  $('access-baseline').textContent = `${result.baselineAccess.toFixed(1)}%`;
-  $('access-result').textContent = `${result.access.toFixed(1)}%`;
-  $('value-baseline').textContent = `$${result.baselineValue.toFixed(1)}m`;
-  $('value-result').textContent = `$${result.value.toFixed(1)}m`;
+  const formats = {
+    rent: n => `$${Math.round(n).toLocaleString()}`,
+    retention: n => `${n.toFixed(1)}%`, occupancy: n => `${n.toFixed(1)}%`,
+    newcomerShare: n => `${n.toFixed(1)}%`, burdened: n => `${n.toFixed(1)}%`,
+    units: n => Math.round(n).toLocaleString(), waiting: n => Math.round(n).toLocaleString(),
+  };
+  Object.entries(formats).forEach(([key,format]) => {
+    $(`${key}-baseline`).textContent=format(result.baseline[key]);
+    $(`${key}-result`).textContent=format(result.scenario[key]);
+  });
   // Adapter event for a future Rhino/Grasshopper renderer, without filling the canvas.
   document.dispatchEvent(new CustomEvent('simulation:update', { detail: {
     year: state.year, playing: state.playing, baseCondition,

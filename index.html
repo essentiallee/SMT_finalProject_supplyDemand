@@ -7,6 +7,7 @@
   <title>Democratizing Policy Simulations</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="style.css">
+  <script src="housing-model.js" defer></script>
   <script src="script.js" defer></script>
 </head>
 <body>
@@ -16,10 +17,11 @@
       <div class="tool-content">
         <section class="manual">
           <h1>Manual &amp; Explained Method of the Simulation</h1>
-          <p>Working from the logic of supply and demand in real estate development, this simulation explores how policy design could challenge common assumptions. The two main actors are developers and tenants; the simulation acts as the government or policymaker. Move policy tiles into Policy Metrics to build a scenario. Drag a tile by its arrow, or click the arrow to add or remove it. The base condition stays fixed. Press play to advance slowly; dragging the play button or timeline pauses playback. This first version demonstrates the interface with illustrative values. The spatial model and research data will be connected in the next phase.</p>
+          <p>Explore 20 years of supply, demand, and tenant turnover on a lot. Start with 1,000 units and 800 original households across six provisional Ridgewood income bands. Higher-income applicants arrive over time. Market rent compounds by 8.3% annually, with an additional premium when unmet demand exceeds the threshold. Move policy tiles into Policy Metrics and compare with the no-policy trajectory at the same year. Drag the play button to pause and scrub. These are illustrative scenarios, not validated forecasts.</p>
         </section>
         <fieldset class="condition-box"><legend>BASE CONDITION</legend>
-          <div class="base-fields"><label>Housing units <input id="housing" type="number" min="100" max="100000" step="100" value="1000" readonly aria-label="Fixed housing units"></label><label>Tenant households <input id="households" type="number" min="100" max="100000" step="100" value="1200" readonly aria-label="Fixed tenant households"></label></div>
+          <div class="base-fields"><label>Housing units <input id="housing" type="number" value="1000" readonly></label><label>Original households <input id="households" type="number" value="800" readonly></label></div>
+          <p class="policy-help">80% initial occupancy · $1,648 starting monthly rent<br>8.3% annual rent growth · 3.3% income growth<br>60 newcomer applicants / year · 20-year horizon</p>
         </fieldset>
         <div class="flow-arrow" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
         <fieldset class="metrics-box" data-policy-zone="active"><legend>POLICY METRICS</legend><p class="drop-hint" id="drop-hint">Move policy tiles here to build a scenario.</p><div id="active-policies" class="active-policies"></div></fieldset>
@@ -29,16 +31,20 @@
     <section class="simulation-space" aria-label="Reserved for the Rhino and Grasshopper model"><div id="model-mount"></div></section>
     <aside class="right-column">
       <details class="credits-panel"><summary class="pill-header">DATA SOURCE &amp; CREDITS <span class="chevron" aria-hidden="true"></span></summary>
-        <div class="credits-content"><p>Democratizing Policy Simulations</p><p>A collaborative SMT project exploring developers, tenants, and policy in real estate development.</p><p>Interface prototype: all displayed results use synthetic demonstration calculations. No observed dataset or Rhino/Grasshopper model is connected yet.</p><a href="https://github.com/essentiallee/SMT_finalProject_supplyDemand/tree/Branch_Jae" target="_blank" rel="noopener noreferrer">Project source / Branch_Jae ↗</a></div>
+        <div class="credits-content"><p>Democratizing Policy Simulations</p><p>A collaborative SMT project exploring developers, tenants, and policy in real estate development.</p><p>Provisional Ridgewood (11385) income shares supplied by the team; not independently verified. Rent thresholds are affordability benchmarks, not observed market rents. Census/HUD integration and spatial visualization are pending. See README for assumptions.</p><a href="https://github.com/essentiallee/SMT_finalProject_supplyDemand/tree/Branch_Jae" target="_blank" rel="noopener noreferrer">Project source / Branch_Jae ↗</a></div>
       </details>
       <section class="simulation-panel" aria-label="Simulation playback and results">
         <h2>SIMULATE</h2>
         <div class="play-row" id="play-track"><label class="sr-only" for="timeline">Simulation year</label><input id="timeline" type="range" min="0" max="20" step="0.1" value="0"><button id="play" class="play-button" aria-label="Play simulation" aria-pressed="false"><span class="play-icon" aria-hidden="true"></span></button></div>
         <span id="time-label" class="time-label">YEAR 00 / 20</span>
         <div class="result-list">
-          <section class="result-card"><div class="result-title"><h2>RESULT A</h2><span>variable a</span></div><div class="result-numbers"><div class="result-value observed"><span>baseline:</span><strong id="access-baseline">—</strong></div><div class="result-value"><span>simulated</span><strong id="access-result">—</strong></div></div></section>
-          <section class="result-card"><div class="result-title"><h2>RESULT B</h2><span>variable b</span></div><div class="result-numbers"><div class="result-value observed"><span>baseline:</span><strong id="value-baseline">—</strong></div><div class="result-value"><span>simulated</span><strong id="value-result">—</strong></div></div></section>
-          <p class="demo-note">Illustrative results · model connection pending</p>
+<section class="result-card"><div class="result-title"><h2>MONTHLY MARKET RENT</h2><span>Asking rent · nominal $ / month</span></div><div class="result-numbers"><div class="result-value observed"><span>No policy</span><strong id="rent-baseline">—</strong></div><div class="result-value"><span>Your scenario</span><strong id="rent-result">—</strong></div></div></section>
+<section class="result-card"><div class="result-title"><h2>ORIGINAL TENANTS RETAINED</h2><span>Share of the initial 800 households</span></div><div class="result-numbers"><div class="result-value observed"><span>No policy</span><strong id="retention-baseline">—</strong></div><div class="result-value"><span>Your scenario</span><strong id="retention-result">—</strong></div></div></section>
+<section class="result-card"><div class="result-title"><h2>HOUSING OCCUPANCY</h2><span>Occupied units / available units</span></div><div class="result-numbers"><div class="result-value observed"><span>No policy</span><strong id="occupancy-baseline">—</strong></div><div class="result-value"><span>Your scenario</span><strong id="occupancy-result">—</strong></div></div></section>
+<section class="result-card"><div class="result-title"><h2>NEW TENANT SHARE</h2><span>Newcomers / occupied households</span></div><div class="result-numbers"><div class="result-value observed"><span>No policy</span><strong id="newcomerShare-baseline">—</strong></div><div class="result-value"><span>Your scenario</span><strong id="newcomerShare-result">—</strong></div></div></section>
+<section class="result-card"><div class="result-title"><h2>RENT-BURDENED HOUSEHOLDS</h2><span>Effective rent exceeds 30% of income + support</span></div><div class="result-numbers"><div class="result-value observed"><span>No policy</span><strong id="burdened-baseline">—</strong></div><div class="result-value"><span>Your scenario</span><strong id="burdened-result">—</strong></div></div></section>
+<section class="result-card"><div class="result-title"><h2>HOUSING SUPPLY</h2><span>Completed units · includes development lag</span></div><div class="result-numbers"><div class="result-value observed"><span>No policy</span><strong id="units-baseline">—</strong></div><div class="result-value"><span>Your scenario</span><strong id="units-result">—</strong></div></div></section>
+<section class="result-card"><div class="result-title"><h2>UNMET HOUSING DEMAND</h2><span>Applicants still seeking a unit</span></div><div class="result-numbers"><div class="result-value observed"><span>No policy</span><strong id="waiting-baseline">—</strong></div><div class="result-value"><span>Your scenario</span><strong id="waiting-result">—</strong></div></div></section><p class="demo-note">Same-year comparison · illustrative assumptions<br>Original tenant departure is an affordability-exit proxy, not measured eviction.</p>
         </div>
         <div hidden><div id="access-bar"></div><div id="value-bar"></div></div>
       </section>
